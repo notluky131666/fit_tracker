@@ -110,6 +110,10 @@ const Weight: React.FC = () => {
     try {
       console.log('Form values received:', values);
       
+      if (!values.weight) {
+        throw new Error('Weight value is required');
+      }
+      
       // Make sure date is valid
       const dateValue = values.date ? new Date(values.date) : new Date();
       if (isNaN(dateValue.getTime())) {
@@ -119,7 +123,7 @@ const Weight: React.FC = () => {
       const formData = {
         ...values,
         date: dateValue,
-        weight: Number(values.weight) || 0,
+        weight: Number(values.weight),
         notes: values.notes || ''
       };
       
@@ -127,13 +131,34 @@ const Weight: React.FC = () => {
 
       if (editingEntry) {
         console.log('Updating entry with ID:', editingEntry.id);
-        updateWeightMutation.mutate({ id: editingEntry.id, data: formData });
+        updateWeightMutation.mutate({ 
+          id: editingEntry.id, 
+          data: formData 
+        }, {
+          onError: (error: any) => {
+            console.error('Update mutation error:', error);
+            toast({
+              title: 'Update Failed',
+              description: error.message,
+              variant: 'destructive'
+            });
+          }
+        });
       } else {
-        console.log('Creating new entry');
-        createWeightMutation.mutate(formData);
+        console.log('Creating new entry with data:', formData);
+        createWeightMutation.mutate(formData, {
+          onError: (error: any) => {
+            console.error('Create mutation error:', error);
+            toast({
+              title: 'Creation Failed',
+              description: error.message,
+              variant: 'destructive'
+            });
+          }
+        });
       }
     } catch (error) {
-      console.error('Error in form submission:', error);
+      console.error('Form validation error:', error);
       toast({ 
         title: 'Form Error', 
         description: `Could not process form: ${error instanceof Error ? error.message : 'Unknown error'}`, 
