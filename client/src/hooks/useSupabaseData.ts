@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSupabase } from './useSupabase';
 import * as supabaseService from '@/services/supabaseService';
 import { CalorieEntry, WeightEntry, WorkoutEntry, RecentActivity } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 export function useSupabaseData() {
   const { user } = useSupabase();
@@ -74,15 +75,29 @@ export function useSupabaseData() {
   };
   
   const createWorkoutEntry = async (data: Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>): Promise<WorkoutEntry> => {
-    if (!user?.id) throw new Error('User not authenticated');
-    const newEntry = await supabaseService.createWorkoutEntry(user.id, data);
+    // Get current user from Supabase directly to ensure we have the most up-to-date session
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser?.id) {
+      console.error('User not authenticated when trying to create workout');
+      throw new Error('User not authenticated');
+    }
+    
+    const newEntry = await supabaseService.createWorkoutEntry(currentUser.id, data);
     queryClient.invalidateQueries({ queryKey: ['workouts'] });
     queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
     return newEntry;
   };
   
   const updateWorkoutEntry = async (id: number, data: Partial<Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>>): Promise<WorkoutEntry> => {
-    if (!user?.id) throw new Error('User not authenticated');
+    // Get current user from Supabase directly
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser?.id) {
+      console.error('User not authenticated when trying to update workout');
+      throw new Error('User not authenticated');
+    }
+    
     const updatedEntry = await supabaseService.updateWorkoutEntry(id, data);
     queryClient.invalidateQueries({ queryKey: ['workouts'] });
     queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
@@ -90,7 +105,14 @@ export function useSupabaseData() {
   };
   
   const deleteWorkoutEntry = async (id: number): Promise<boolean> => {
-    if (!user?.id) throw new Error('User not authenticated');
+    // Get current user from Supabase directly
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser?.id) {
+      console.error('User not authenticated when trying to delete workout');
+      throw new Error('User not authenticated');
+    }
+    
     const success = await supabaseService.deleteWorkoutEntry(id);
     queryClient.invalidateQueries({ queryKey: ['workouts'] });
     queryClient.invalidateQueries({ queryKey: ['recent-activity'] });

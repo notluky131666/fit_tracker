@@ -90,16 +90,18 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onSignOut }) => {
       <nav className="flex-1 px-4 pb-4">
         <div className="space-y-1">
           {navItems.map(item => (
-            <Link key={item.href} href={prependBase(item.href)}>
-              <a className={cn(
+            <Link 
+              key={item.href} 
+              href={prependBase(item.href)}
+              className={cn(
                 "flex items-center px-4 py-3 text-sm font-medium rounded-md",
                 location === item.href 
                   ? "bg-primary/10 text-primary"
                   : "text-gray-700 hover:bg-gray-100"
-              )}>
-                {item.icon}
-                {item.label}
-              </a>
+              )}
+            >
+              {item.icon}
+              {item.label}
             </Link>
           ))}
         </div>

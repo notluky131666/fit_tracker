@@ -88,14 +88,16 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
   const renderBottomNav = () => (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center z-10">
       {navItems.map(item => (
-        <Link key={item.href} href={prependBase(item.href)}>
-          <a className={cn(
+        <Link 
+          key={item.href} 
+          href={prependBase(item.href)}
+          className={cn(
             "flex flex-col items-center p-3",
             location === item.href ? "text-primary" : "text-gray-500"
-          )}>
-            {item.icon}
-            <span className="text-xs mt-1">{item.label}</span>
-          </a>
+          )}
+        >
+          {item.icon}
+          <span className="text-xs mt-1">{item.label}</span>
         </Link>
       ))}
     </div>
@@ -124,19 +126,19 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
           <nav className="flex-1 px-4 pb-4">
             <div className="space-y-1">
               {navItems.map(item => (
-                <Link key={item.href} href={prependBase(item.href)}>
-                  <a 
-                    className={cn(
-                      "flex items-center px-4 py-3 text-sm font-medium rounded-md",
-                      location === item.href 
-                        ? "bg-primary/10 text-primary"
-                        : "text-gray-700 hover:bg-gray-100"
-                    )}
-                    onClick={() => setOpen(false)}
-                  >
-                    <span className="mr-3">{item.icon}</span>
-                    {item.label}
-                  </a>
+                <Link 
+                  key={item.href} 
+                  href={prependBase(item.href)}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-sm font-medium rounded-md",
+                    location === item.href 
+                      ? "bg-primary/10 text-primary"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  {item.label}
                 </Link>
               ))}
             </div>
