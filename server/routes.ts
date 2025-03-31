@@ -313,12 +313,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Add userId to the request body
       const data = { ...req.body, userId: req.session.userId };
+      console.log('Processing weight data:', data);
+      
       const weightData = insertWeightSchema.parse(data);
+      console.log('Validated weight data:', weightData);
 
       const weight = await storage.createWeight(weightData);
+      console.log('Created weight entry:', weight);
+      
       res.status(201).json(weight);
     } catch (error) {
       console.error('API Error:', error);
+      console.error('Request body:', req.body);
+      console.error('Session user:', req.session.userId);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
