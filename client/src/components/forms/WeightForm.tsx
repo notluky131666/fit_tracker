@@ -44,14 +44,17 @@ const WeightForm: React.FC<WeightFormProps> = ({
   // Get the current date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
-  // Initialize form with default values or empty values
+  // Create proper default values to avoid type errors
+  const formDefaultValues = {
+    date: defaultValues?.date || today,
+    weight: defaultValues?.weight || 70, // Set a reasonable default in kg
+    notes: defaultValues?.notes || '',
+  };
+
+  // Initialize form with default values
   const form = useForm<WeightFormValues>({
     resolver: zodResolver(weightFormSchema),
-    defaultValues: {
-      date: defaultValues?.date || today,
-      weight: defaultValues?.weight || 0,
-      notes: defaultValues?.notes || '',
-    },
+    defaultValues: formDefaultValues,
   });
 
   return (

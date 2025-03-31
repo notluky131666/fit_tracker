@@ -53,16 +53,19 @@ const WorkoutForm: React.FC<WorkoutFormProps> = ({
   // Get the current date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
-  // Initialize form with default values or empty values
+  // Create proper default values to avoid type errors
+  const formDefaultValues = {
+    date: defaultValues?.date || today,
+    type: defaultValues?.type || 'cardio', // Default to cardio type
+    duration: defaultValues?.duration || 30, // Default to 30 minutes
+    intensity: defaultValues?.intensity || 'medium', // Default to medium intensity
+    notes: defaultValues?.notes || '',
+  };
+
+  // Initialize form with default values
   const form = useForm<WorkoutFormValues>({
     resolver: zodResolver(workoutFormSchema),
-    defaultValues: defaultValues || {
-      date: today,
-      type: '',
-      duration: undefined,
-      intensity: '',
-      notes: '',
-    },
+    defaultValues: formDefaultValues,
   });
 
   return (

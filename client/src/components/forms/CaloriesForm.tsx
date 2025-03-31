@@ -47,17 +47,20 @@ const CaloriesForm: React.FC<CaloriesFormProps> = ({
   // Get the current date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
-  // Initialize form with default values or empty values
+  // Create proper default values to avoid type errors
+  const formDefaultValues = {
+    date: defaultValues?.date || today,
+    totalCalories: defaultValues?.totalCalories || 0,
+    protein: defaultValues?.protein || 0,
+    carbs: defaultValues?.carbs || 0,
+    fat: defaultValues?.fat || 0,
+    notes: defaultValues?.notes || '',
+  };
+
+  // Initialize form with default values
   const form = useForm<CaloriesFormValues>({
     resolver: zodResolver(caloriesFormSchema),
-    defaultValues: defaultValues || {
-      date: today,
-      totalCalories: undefined,
-      protein: undefined,
-      carbs: undefined,
-      fat: undefined,
-      notes: '',
-    },
+    defaultValues: formDefaultValues,
   });
 
   return (
