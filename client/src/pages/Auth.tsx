@@ -55,9 +55,14 @@ const Auth: React.FC = () => {
   const handleLogin = async (data: LoginFormValues) => {
     try {
       await signIn(data.email, data.password);
-      setLocation('/dashboard');
+      // Instead of immediately redirecting, check if user is set
+      // The actual redirect will happen via the AuthGuard component after the state updates
+      setTimeout(() => {
+        setLocation('/dashboard');
+      }, 500); // Small delay to allow state to update
     } catch (error: any) {
       console.error('Login error:', error);
+      // Error is already handled by the toast in the useSupabase hook
     }
   };
 

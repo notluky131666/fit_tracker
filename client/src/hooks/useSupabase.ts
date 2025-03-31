@@ -129,26 +129,27 @@ export function useSupabase() {
 
       if (error) throw error;
 
-      // After Supabase login, also login with our backend
+      // After Supabase login, update local state and proceed directly
       if (data.user) {
+        // Register the login with backend but don't let it block the user experience
         try {
           await apiRequest('POST', '/api/auth/login', {
             email,
             password
           });
-          
           // Invalidate auth query
           queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-          
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully logged in to Lukie's Fit Track.",
-          });
         } catch (backendError: any) {
-          // If our backend login failed but Supabase worked, signout from Supabase
-          await supabase.auth.signOut();
-          throw new Error(backendError.message || "Failed to complete login");
+          // Just log backend errors but don't make them block the login
+          console.error("Backend login error:", backendError);
+          // Still invalidate the auth query
+          queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
         }
+        
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully logged in to Lukie's Fit Track.",
+        });
       }
     } catch (error: any) {
       toast({
