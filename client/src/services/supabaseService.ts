@@ -51,36 +51,67 @@ export const getCalorieEntries = async (userId: string) => {
 };
 
 export const createCalorieEntry = async (userId: string, entryData: Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>) => {
-  const { data, error } = await supabase
-    .from('calories')
-    .insert([
-      { 
-        user_id: userId, 
-        date: entryData.date.toISOString(),
-        total_calories: entryData.totalCalories,
-        protein: entryData.protein,
-        carbs: entryData.carbs,
-        fat: entryData.fat,
-        notes: entryData.notes,
-        created_at: new Date().toISOString()
-      }
-    ])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  
-  return {
-    id: data.id,
-    userId: data.user_id,
-    date: new Date(data.date),
-    totalCalories: data.total_calories,
-    protein: data.protein,
-    carbs: data.carbs,
-    fat: data.fat,
-    notes: data.notes,
-    createdAt: new Date(data.created_at)
-  } as CalorieEntry;
+  try {
+    console.log('Supabase createCalorieEntry - userId:', userId);
+    console.log('Supabase createCalorieEntry - entryData:', JSON.stringify(entryData, null, 2));
+    
+    // Ensure proper data formatting
+    const formattedCalories = Number(entryData.totalCalories);
+    if (isNaN(formattedCalories)) {
+      throw new Error(`Invalid calories value: ${entryData.totalCalories}`);
+    }
+    
+    const insertData = { 
+      user_id: userId, 
+      date: entryData.date instanceof Date ? entryData.date.toISOString() : new Date(entryData.date).toISOString(),
+      total_calories: formattedCalories,
+      protein: entryData.protein !== undefined ? Number(entryData.protein) : null,
+      carbs: entryData.carbs !== undefined ? Number(entryData.carbs) : null,
+      fat: entryData.fat !== undefined ? Number(entryData.fat) : null,
+      notes: entryData.notes || null,
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('Supabase insertData:', JSON.stringify(insertData, null, 2));
+    
+    const { data, error } = await supabase
+      .from('calories')
+      .insert([insertData])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.error('No data returned from Supabase after insert');
+      throw new Error('No data returned from database after insert');
+    }
+    
+    console.log('Supabase createCalorieEntry - success response:', JSON.stringify(data, null, 2));
+    
+    return {
+      id: data.id,
+      userId: data.user_id,
+      date: new Date(data.date),
+      totalCalories: data.total_calories,
+      protein: data.protein,
+      carbs: data.carbs,
+      fat: data.fat,
+      notes: data.notes,
+      createdAt: new Date(data.created_at)
+    } as CalorieEntry;
+  } catch (error) {
+    console.error('Error in createCalorieEntry:', error);
+    // Rethrow the error with more context
+    if (error instanceof Error) {
+      throw new Error(`Failed to create calorie entry: ${error.message}`);
+    } else {
+      throw new Error('Failed to create calorie entry: Unknown error');
+    }
+  }
 };
 
 export const updateCalorieEntry = async (entryId: number, entryData: Partial<Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>>) => {
@@ -146,30 +177,61 @@ export const getWeightEntries = async (userId: string) => {
 };
 
 export const createWeightEntry = async (userId: string, entryData: Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>) => {
-  const { data, error } = await supabase
-    .from('weights')
-    .insert([
-      { 
-        user_id: userId, 
-        date: entryData.date.toISOString(),
-        weight: entryData.weight,
-        notes: entryData.notes,
-        created_at: new Date().toISOString()
-      }
-    ])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  
-  return {
-    id: data.id,
-    userId: data.user_id,
-    date: new Date(data.date),
-    weight: data.weight,
-    notes: data.notes,
-    createdAt: new Date(data.created_at)
-  } as WeightEntry;
+  try {
+    console.log('Supabase createWeightEntry - userId:', userId);
+    console.log('Supabase createWeightEntry - entryData:', JSON.stringify(entryData, null, 2));
+    
+    // Ensure proper data formatting
+    const formattedWeight = Number(entryData.weight);
+    if (isNaN(formattedWeight)) {
+      throw new Error(`Invalid weight value: ${entryData.weight}`);
+    }
+    
+    const insertData = { 
+      user_id: userId, 
+      date: entryData.date instanceof Date ? entryData.date.toISOString() : new Date(entryData.date).toISOString(),
+      weight: formattedWeight,
+      notes: entryData.notes || null,
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('Supabase insertData:', JSON.stringify(insertData, null, 2));
+    
+    const { data, error } = await supabase
+      .from('weights')
+      .insert([insertData])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.error('No data returned from Supabase after insert');
+      throw new Error('No data returned from database after insert');
+    }
+    
+    console.log('Supabase createWeightEntry - success response:', JSON.stringify(data, null, 2));
+    
+    return {
+      id: data.id,
+      userId: data.user_id,
+      date: new Date(data.date),
+      weight: data.weight,
+      notes: data.notes,
+      createdAt: new Date(data.created_at)
+    } as WeightEntry;
+  } catch (error) {
+    console.error('Error in createWeightEntry:', error);
+    // Rethrow the error with more context
+    if (error instanceof Error) {
+      throw new Error(`Failed to create weight entry: ${error.message}`);
+    } else {
+      throw new Error('Failed to create weight entry: Unknown error');
+    }
+  }
 };
 
 export const updateWeightEntry = async (entryId: number, entryData: Partial<Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>>) => {
@@ -231,34 +293,65 @@ export const getWorkoutEntries = async (userId: string) => {
 };
 
 export const createWorkoutEntry = async (userId: string, entryData: Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>) => {
-  const { data, error } = await supabase
-    .from('workouts')
-    .insert([
-      { 
-        user_id: userId, 
-        date: entryData.date.toISOString(),
-        type: entryData.type,
-        duration: entryData.duration,
-        intensity: entryData.intensity,
-        notes: entryData.notes,
-        created_at: new Date().toISOString()
-      }
-    ])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  
-  return {
-    id: data.id,
-    userId: data.user_id,
-    date: new Date(data.date),
-    type: data.type,
-    duration: data.duration,
-    intensity: data.intensity,
-    notes: data.notes,
-    createdAt: new Date(data.created_at)
-  } as WorkoutEntry;
+  try {
+    console.log('Supabase createWorkoutEntry - userId:', userId);
+    console.log('Supabase createWorkoutEntry - entryData:', JSON.stringify(entryData, null, 2));
+    
+    // Ensure proper data formatting
+    const formattedDuration = Number(entryData.duration);
+    if (isNaN(formattedDuration)) {
+      throw new Error(`Invalid duration value: ${entryData.duration}`);
+    }
+    
+    const insertData = { 
+      user_id: userId, 
+      date: entryData.date instanceof Date ? entryData.date.toISOString() : new Date(entryData.date).toISOString(),
+      type: entryData.type || 'other',
+      duration: formattedDuration,
+      intensity: entryData.intensity || 'medium',
+      notes: entryData.notes || null,
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('Supabase insertData:', JSON.stringify(insertData, null, 2));
+    
+    const { data, error } = await supabase
+      .from('workouts')
+      .insert([insertData])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.error('No data returned from Supabase after insert');
+      throw new Error('No data returned from database after insert');
+    }
+    
+    console.log('Supabase createWorkoutEntry - success response:', JSON.stringify(data, null, 2));
+    
+    return {
+      id: data.id,
+      userId: data.user_id,
+      date: new Date(data.date),
+      type: data.type,
+      duration: data.duration,
+      intensity: data.intensity,
+      notes: data.notes,
+      createdAt: new Date(data.created_at)
+    } as WorkoutEntry;
+  } catch (error) {
+    console.error('Error in createWorkoutEntry:', error);
+    // Rethrow the error with more context
+    if (error instanceof Error) {
+      throw new Error(`Failed to create workout entry: ${error.message}`);
+    } else {
+      throw new Error('Failed to create workout entry: Unknown error');
+    }
+  }
 };
 
 export const updateWorkoutEntry = async (entryId: number, entryData: Partial<Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>>) => {
