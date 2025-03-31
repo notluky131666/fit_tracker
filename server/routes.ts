@@ -318,14 +318,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const weightData = insertWeightSchema.parse(data);
       console.log('Validated weight data:', weightData);
 
-      const weight = await storage.createWeight(weightData);
-      console.log('Created weight entry:', weight);
-      
-      res.status(201).json(weight);
+      console.log('Attempting to create weight entry with data:', weightData);
+      try {
+        const weight = await storage.createWeight(weightData);
+        console.log('Successfully created weight entry:', weight);
+        res.status(201).json(weight);
+      } catch (storageError) {
+        console.error('Storage operation failed:', storageError);
+        throw storageError;
+      }
     } catch (error) {
       console.error('API Error:', error);
       console.error('Request body:', req.body);
       console.error('Session user:', req.session.userId);
+      console.error('Error type:', error.constructor.name);
+      console.error('Error stack:', error.stack);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
