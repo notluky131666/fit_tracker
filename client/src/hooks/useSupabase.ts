@@ -141,7 +141,7 @@ export function useSupabase() {
           queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
         } catch (backendError: any) {
           // Just log backend errors but don't make them block the login
-          console.error("Backend login error:", backendError);
+          console.error("Backend login error:", backendError.message || "Unknown error");
           // Still invalidate the auth query
           queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
         }

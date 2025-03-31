@@ -47,10 +47,10 @@ const WeightForm: React.FC<WeightFormProps> = ({
   // Initialize form with default values or empty values
   const form = useForm<WeightFormValues>({
     resolver: zodResolver(weightFormSchema),
-    defaultValues: defaultValues || {
-      date: today,
-      weight: undefined,
-      notes: '',
+    defaultValues: {
+      date: defaultValues?.date || today,
+      weight: defaultValues?.weight || 0,
+      notes: defaultValues?.notes || '',
     },
   });
 
