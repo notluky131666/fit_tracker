@@ -48,43 +48,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingByEmail = await storage.getUserByEmail(userData.email);
       if (existingByEmail) {
         return res.status(400).json({ message: "Email already registered" });
       }
-      
+
       const existingByUsername = await storage.getUserByUsername(userData.username);
       if (existingByUsername) {
         return res.status(400).json({ message: "Username already taken" });
       }
-      
+
       // Create new user
       const user = await storage.createUser(userData);
-      
+
       // Set session
       req.session.userId = user.id;
-      
+
       // Return user without password
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({ message: "Email and password are required" });
       }
-      
+
       // Find user by email
       const user = await storage.getUserByEmail(email);
       if (!user) {
@@ -106,25 +107,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ message: "Authenticated with Supabase" });
         }
       }
-      
+
       // If user exists but passwords don't match, we'll still authenticate
       // since they've already been authenticated by Supabase
-      
+
       // Set session
       req.session.userId = user.id;
-      
+
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
   app.post('/api/auth/logout', (req, res) => {
     req.session.destroy((err) => {
       if (err) {
-        return res.status(500).json({ message: "Failed to logout" });
+        console.error('API Error:', err);
+        return res.status(500).json({ message: "Failed to logout", error: err instanceof Error ? err.message : String(err) });
       }
       res.json({ message: "Logged out successfully" });
     });
@@ -134,19 +137,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     try {
       const user = await storage.getUser(req.session.userId);
       if (!user) {
         req.session.destroy(() => {});
         return res.status(401).json({ message: "User not found" });
       }
-      
+
       // Return user without password
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -156,84 +160,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const calories = await storage.getCalories(req.session.userId!);
       res.json(calories);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.get('/api/calories/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const calorie = await storage.getCalorieById(id);
-      
+
       if (!calorie) {
         return res.status(404).json({ message: "Calorie entry not found" });
       }
-      
+
       // Check if the calorie entry belongs to the logged-in user
       if (calorie.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to access this entry" });
       }
-      
+
       res.json(calorie);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.post('/api/calories', requireAuth, async (req, res) => {
     try {
       // Add userId to the request body
       const data = { ...req.body, userId: req.session.userId };
       const calorieData = insertCaloriesSchema.parse(data);
-      
+
       const calorie = await storage.createCalorie(calorieData);
       res.status(201).json(calorie);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.put('/api/calories/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const calorie = await storage.getCalorieById(id);
-      
+
       if (!calorie) {
         return res.status(404).json({ message: "Calorie entry not found" });
       }
-      
+
       // Check if the calorie entry belongs to the logged-in user
       if (calorie.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to update this entry" });
       }
-      
+
       const updatedCalorie = await storage.updateCalorie(id, req.body);
       res.json(updatedCalorie);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.delete('/api/calories/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const calorie = await storage.getCalorieById(id);
-      
+
       if (!calorie) {
         return res.status(404).json({ message: "Calorie entry not found" });
       }
-      
+
       // Check if the calorie entry belongs to the logged-in user
       if (calorie.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to delete this entry" });
       }
-      
+
       const success = await storage.deleteCalorie(id);
       if (success) {
         res.json({ message: "Calorie entry deleted successfully" });
@@ -241,29 +249,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Failed to delete calorie entry" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   // Get calories by date range
   app.get('/api/calories/range/:start/:end', requireAuth, async (req, res) => {
     try {
       const startDate = new Date(req.params.start);
       const endDate = new Date(req.params.end);
-      
+
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         return res.status(400).json({ message: "Invalid date format" });
       }
-      
+
       const calories = await storage.getCaloriesByDateRange(
         req.session.userId!,
         startDate,
         endDate
       );
-      
+
       res.json(calories);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -273,84 +283,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const weights = await storage.getWeights(req.session.userId!);
       res.json(weights);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.get('/api/weights/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const weight = await storage.getWeightById(id);
-      
+
       if (!weight) {
         return res.status(404).json({ message: "Weight entry not found" });
       }
-      
+
       // Check if the weight entry belongs to the logged-in user
       if (weight.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to access this entry" });
       }
-      
+
       res.json(weight);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.post('/api/weights', requireAuth, async (req, res) => {
     try {
       // Add userId to the request body
       const data = { ...req.body, userId: req.session.userId };
       const weightData = insertWeightSchema.parse(data);
-      
+
       const weight = await storage.createWeight(weightData);
       res.status(201).json(weight);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.put('/api/weights/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const weight = await storage.getWeightById(id);
-      
+
       if (!weight) {
         return res.status(404).json({ message: "Weight entry not found" });
       }
-      
+
       // Check if the weight entry belongs to the logged-in user
       if (weight.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to update this entry" });
       }
-      
+
       const updatedWeight = await storage.updateWeight(id, req.body);
       res.json(updatedWeight);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.delete('/api/weights/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const weight = await storage.getWeightById(id);
-      
+
       if (!weight) {
         return res.status(404).json({ message: "Weight entry not found" });
       }
-      
+
       // Check if the weight entry belongs to the logged-in user
       if (weight.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to delete this entry" });
       }
-      
+
       const success = await storage.deleteWeight(id);
       if (success) {
         res.json({ message: "Weight entry deleted successfully" });
@@ -358,29 +372,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Failed to delete weight entry" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   // Get weights by date range
   app.get('/api/weights/range/:start/:end', requireAuth, async (req, res) => {
     try {
       const startDate = new Date(req.params.start);
       const endDate = new Date(req.params.end);
-      
+
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         return res.status(400).json({ message: "Invalid date format" });
       }
-      
+
       const weights = await storage.getWeightsByDateRange(
         req.session.userId!,
         startDate,
         endDate
       );
-      
+
       res.json(weights);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -390,84 +406,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const workouts = await storage.getWorkouts(req.session.userId!);
       res.json(workouts);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.get('/api/workouts/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const workout = await storage.getWorkoutById(id);
-      
+
       if (!workout) {
         return res.status(404).json({ message: "Workout entry not found" });
       }
-      
+
       // Check if the workout entry belongs to the logged-in user
       if (workout.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to access this entry" });
       }
-      
+
       res.json(workout);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.post('/api/workouts', requireAuth, async (req, res) => {
     try {
       // Add userId to the request body
       const data = { ...req.body, userId: req.session.userId };
       const workoutData = insertWorkoutSchema.parse(data);
-      
+
       const workout = await storage.createWorkout(workoutData);
       res.status(201).json(workout);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.put('/api/workouts/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const workout = await storage.getWorkoutById(id);
-      
+
       if (!workout) {
         return res.status(404).json({ message: "Workout entry not found" });
       }
-      
+
       // Check if the workout entry belongs to the logged-in user
       if (workout.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to update this entry" });
       }
-      
+
       const updatedWorkout = await storage.updateWorkout(id, req.body);
       res.json(updatedWorkout);
     } catch (error) {
+      console.error('API Error:', error);
       if (error instanceof ZodError) {
         return handleZodError(error, res);
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   app.delete('/api/workouts/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const workout = await storage.getWorkoutById(id);
-      
+
       if (!workout) {
         return res.status(404).json({ message: "Workout entry not found" });
       }
-      
+
       // Check if the workout entry belongs to the logged-in user
       if (workout.userId !== req.session.userId) {
         return res.status(403).json({ message: "Not authorized to delete this entry" });
       }
-      
+
       const success = await storage.deleteWorkout(id);
       if (success) {
         res.json({ message: "Workout entry deleted successfully" });
@@ -475,29 +495,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Failed to delete workout entry" });
       }
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
-  
+
   // Get workouts by date range
   app.get('/api/workouts/range/:start/:end', requireAuth, async (req, res) => {
     try {
       const startDate = new Date(req.params.start);
       const endDate = new Date(req.params.end);
-      
+
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         return res.status(400).json({ message: "Invalid date format" });
       }
-      
+
       const workouts = await storage.getWorkoutsByDateRange(
         req.session.userId!,
         startDate,
         endDate
       );
-      
+
       res.json(workouts);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -506,7 +528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const activities = await storage.getRecentActivity(req.session.userId!, limit);
-      
+
       // Map activities to a standard format for the frontend
       const formattedActivities = activities.map(activity => {
         // Check which type of activity it is
@@ -538,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: activity.createdAt
           };
         }
-        
+
         // Fallback case
         return {
           id: (activity as any).id,
@@ -549,10 +571,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: (activity as any).createdAt
         };
       });
-      
+
       res.json(formattedActivities);
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error('API Error:', error);
+      res.status(500).json({ message: "Server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
