@@ -1,11 +1,12 @@
 import React from 'react';
-import { User } from '@/types';
+import { User as AppUser } from '@/types';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import Sidebar from '@/components/Sidebar';
 import MobileNav from '@/components/MobileNav';
 
 interface LayoutProps {
   children: React.ReactNode;
-  user: User | null;
+  user: SupabaseUser | null;
   onSignOut: () => void;
 }
 

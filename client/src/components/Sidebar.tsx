@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { User } from '@/types';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import UserProfile from './UserProfile';
 
 interface NavItem {
@@ -11,7 +11,7 @@ interface NavItem {
 }
 
 interface SidebarProps {
-  user: User | null;
+  user: SupabaseUser | null;
   onSignOut: () => void;
 }
 

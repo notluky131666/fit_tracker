@@ -1,25 +1,31 @@
 import React from 'react';
-import { User } from '@/types';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface UserProfileProps {
-  user: User;
+  user: SupabaseUser;
   onSignOut: () => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ user, onSignOut }) => {
   // Get user initials for avatar
   const getInitials = () => {
-    if (user.fullName) {
-      return user.fullName
-        .split(' ')
-        .map(name => name[0])
+    // Supabase user may have user_metadata with additional info
+    const name = user.user_metadata?.full_name || user.email;
+    if (name) {
+      return name
+        .split(/[ @]/) // Split by space or @ (for email)
+        .map((part: string) => part[0])
         .join('')
-        .toUpperCase();
+        .toUpperCase()
+        .substring(0, 2);
     }
-    return user.username.substring(0, 2).toUpperCase();
+    return 'U'; // Default fallback
   };
+
+  // Display name is either from metadata or email
+  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
 
   return (
     <div className="border-t border-gray-200 p-4">
@@ -29,7 +35,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onSignOut }) => {
         </Avatar>
         <div className="ml-3">
           <p className="text-sm font-medium text-gray-900">
-            {user.fullName || user.username}
+            {displayName}
           </p>
           <Button 
             variant="link" 

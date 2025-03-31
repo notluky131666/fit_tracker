@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { User } from '@/types';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import UserProfile from './UserProfile';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 interface MobileNavProps {
-  user: User | null;
+  user: SupabaseUser | null;
   onSignOut: () => void;
 }
 
