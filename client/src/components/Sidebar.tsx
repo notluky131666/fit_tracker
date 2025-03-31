@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import UserProfile from './UserProfile';
+import { useBasePath } from '../hooks/useBasePath';
 
 interface NavItem {
   href: string;
@@ -17,6 +18,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ user, onSignOut }) => {
   const [location] = useLocation();
+  const { prependBase } = useBasePath();
 
   const navItems: NavItem[] = [
     { 
@@ -88,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onSignOut }) => {
       <nav className="flex-1 px-4 pb-4">
         <div className="space-y-1">
           {navItems.map(item => (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={prependBase(item.href)}>
               <a className={cn(
                 "flex items-center px-4 py-3 text-sm font-medium rounded-md",
                 location === item.href 

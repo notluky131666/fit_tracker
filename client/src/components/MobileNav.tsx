@@ -5,6 +5,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 import UserProfile from './UserProfile';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useBasePath } from '../hooks/useBasePath';
 
 interface NavItem {
   href: string;
@@ -20,6 +21,7 @@ interface MobileNavProps {
 const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
+  const { prependBase } = useBasePath();
 
   const navItems: NavItem[] = [
     { 
@@ -86,7 +88,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
   const renderBottomNav = () => (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center z-10">
       {navItems.map(item => (
-        <Link key={item.href} href={item.href}>
+        <Link key={item.href} href={prependBase(item.href)}>
           <a className={cn(
             "flex flex-col items-center p-3",
             location === item.href ? "text-primary" : "text-gray-500"
@@ -122,7 +124,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
           <nav className="flex-1 px-4 pb-4">
             <div className="space-y-1">
               {navItems.map(item => (
-                <Link key={item.href} href={item.href}>
+                <Link key={item.href} href={prependBase(item.href)}>
                   <a 
                     className={cn(
                       "flex items-center px-4 py-3 text-sm font-medium rounded-md",

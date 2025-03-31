@@ -12,13 +12,26 @@ import Workouts from "@/pages/Workouts";
 import Statistics from "@/pages/Statistics";
 import Layout from "@/components/Layout";
 import AuthGuard from "@/components/AuthGuard";
+import { useEffect } from "react";
+
+// Import the useBasePath hook
+import { useBasePath } from './hooks/useBasePath';
 
 function Router() {
   const [location] = useLocation();
   const { user, loading, signOut } = useSupabase();
+  const { base, prependBase } = useBasePath();
+  
+  // Handle GitHub Pages base path
+  useEffect(() => {
+    // If we're at the root of the base path, redirect to home
+    if (location === base) {
+      window.history.replaceState({}, "", prependBase("/"));
+    }
+  }, [location, base]);
   
   // Non-protected routes
-  if (location === "/") {
+  if (location === "/" || location === base) {
     return <Auth />;
   }
   
