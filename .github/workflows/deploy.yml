@@ -33,6 +33,7 @@ jobs:
 
       - name: Create .nojekyll file
         run: |
+          mkdir -p dist/public
           touch dist/public/.nojekyll
 
       - name: Deploy to GitHub Pages
@@ -40,3 +41,4 @@ jobs:
         with:
           folder: dist/public
           branch: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
