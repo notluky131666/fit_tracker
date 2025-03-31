@@ -82,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onSignOut }) => {
   return (
     <aside className="hidden md:flex md:flex-col w-64 bg-white border-r border-gray-200 overflow-y-auto">
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary">FitTrack</h1>
+        <h1 className="text-2xl font-bold text-primary">Lukie's Fit Track</h1>
       </div>
       
       <nav className="flex-1 px-4 pb-4">

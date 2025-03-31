@@ -1,0 +1,124 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useSupabase } from './useSupabase';
+import * as supabaseService from '@/services/supabaseService';
+import { CalorieEntry, WeightEntry, WorkoutEntry, RecentActivity } from '@/types';
+
+export function useSupabaseData() {
+  const { user } = useSupabase();
+  const queryClient = useQueryClient();
+  
+  // Calories related functions
+  const getCalorieEntries = async (): Promise<CalorieEntry[]> => {
+    if (!user?.id) return [];
+    return await supabaseService.getCalorieEntries(user.id);
+  };
+  
+  const createCalorieEntry = async (data: Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>): Promise<CalorieEntry> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const newEntry = await supabaseService.createCalorieEntry(user.id, data);
+    queryClient.invalidateQueries({ queryKey: ['calories'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return newEntry;
+  };
+  
+  const updateCalorieEntry = async (id: number, data: Partial<Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>>): Promise<CalorieEntry> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const updatedEntry = await supabaseService.updateCalorieEntry(id, data);
+    queryClient.invalidateQueries({ queryKey: ['calories'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return updatedEntry;
+  };
+  
+  const deleteCalorieEntry = async (id: number): Promise<boolean> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const success = await supabaseService.deleteCalorieEntry(id);
+    queryClient.invalidateQueries({ queryKey: ['calories'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return success;
+  };
+  
+  // Weight related functions
+  const getWeightEntries = async (): Promise<WeightEntry[]> => {
+    if (!user?.id) return [];
+    return await supabaseService.getWeightEntries(user.id);
+  };
+  
+  const createWeightEntry = async (data: Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>): Promise<WeightEntry> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const newEntry = await supabaseService.createWeightEntry(user.id, data);
+    queryClient.invalidateQueries({ queryKey: ['weights'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return newEntry;
+  };
+  
+  const updateWeightEntry = async (id: number, data: Partial<Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>>): Promise<WeightEntry> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const updatedEntry = await supabaseService.updateWeightEntry(id, data);
+    queryClient.invalidateQueries({ queryKey: ['weights'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return updatedEntry;
+  };
+  
+  const deleteWeightEntry = async (id: number): Promise<boolean> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const success = await supabaseService.deleteWeightEntry(id);
+    queryClient.invalidateQueries({ queryKey: ['weights'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return success;
+  };
+  
+  // Workout related functions
+  const getWorkoutEntries = async (): Promise<WorkoutEntry[]> => {
+    if (!user?.id) return [];
+    return await supabaseService.getWorkoutEntries(user.id);
+  };
+  
+  const createWorkoutEntry = async (data: Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>): Promise<WorkoutEntry> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const newEntry = await supabaseService.createWorkoutEntry(user.id, data);
+    queryClient.invalidateQueries({ queryKey: ['workouts'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return newEntry;
+  };
+  
+  const updateWorkoutEntry = async (id: number, data: Partial<Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>>): Promise<WorkoutEntry> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const updatedEntry = await supabaseService.updateWorkoutEntry(id, data);
+    queryClient.invalidateQueries({ queryKey: ['workouts'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return updatedEntry;
+  };
+  
+  const deleteWorkoutEntry = async (id: number): Promise<boolean> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    const success = await supabaseService.deleteWorkoutEntry(id);
+    queryClient.invalidateQueries({ queryKey: ['workouts'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+    return success;
+  };
+  
+  // Recent activity
+  const getRecentActivity = async (limit?: number): Promise<RecentActivity[]> => {
+    if (!user?.id) return [];
+    return await supabaseService.getRecentActivity(user.id, limit);
+  };
+  
+  return {
+    getCalorieEntries,
+    createCalorieEntry,
+    updateCalorieEntry,
+    deleteCalorieEntry,
+    
+    getWeightEntries,
+    createWeightEntry,
+    updateWeightEntry,
+    deleteWeightEntry,
+    
+    getWorkoutEntries,
+    createWorkoutEntry,
+    updateWorkoutEntry,
+    deleteWorkoutEntry,
+    
+    getRecentActivity
+  };
+}

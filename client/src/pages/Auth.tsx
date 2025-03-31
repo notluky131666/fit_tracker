@@ -78,6 +78,7 @@ const Auth: React.FC = () => {
 
   return (
     <div className="w-full max-w-md mx-auto mt-16 shadow-md rounded-lg p-8 bg-white">
+      <h1 className="text-3xl font-bold text-center text-primary mb-6">Lukie's Fit Track</h1>
       <div className="flex border-b border-gray-200 mb-6">
         <Button
           variant="ghost"

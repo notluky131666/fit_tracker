@@ -5,14 +5,23 @@ import RecentActivity from '@/components/RecentActivity';
 import WeeklyProgressChart from '@/components/charts/WeeklyProgressChart';
 import { MetricSummary, ChartData, RecentActivity as RecentActivityType } from '@/types';
 import { subDays, format } from 'date-fns';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const Dashboard: React.FC = () => {
+  const { 
+    getRecentActivity,
+    getCalorieEntries,
+    getWeightEntries,
+    getWorkoutEntries
+  } = useSupabaseData();
+
   // Fetch recent activities
   const {
     data: recentActivities,
     isLoading: isLoadingActivities,
   } = useQuery<RecentActivityType[]>({
-    queryKey: ['/api/activity/recent'],
+    queryKey: ['recent-activity'],
+    queryFn: () => getRecentActivity()
   });
 
   // Fetch calorie data for dashboard metrics
@@ -20,7 +29,8 @@ const Dashboard: React.FC = () => {
     data: caloriesData,
     isLoading: isLoadingCalories,
   } = useQuery({
-    queryKey: ['/api/calories'],
+    queryKey: ['calories'],
+    queryFn: getCalorieEntries
   });
 
   // Fetch weight data for dashboard metrics
@@ -28,7 +38,8 @@ const Dashboard: React.FC = () => {
     data: weightsData,
     isLoading: isLoadingWeights,
   } = useQuery({
-    queryKey: ['/api/weights'],
+    queryKey: ['weights'],
+    queryFn: getWeightEntries
   });
 
   // Fetch workout data for dashboard metrics
@@ -36,7 +47,8 @@ const Dashboard: React.FC = () => {
     data: workoutsData,
     isLoading: isLoadingWorkouts,
   } = useQuery({
-    queryKey: ['/api/workouts'],
+    queryKey: ['workouts'],
+    queryFn: getWorkoutEntries
   });
 
   // Generate data for metrics summaries
@@ -117,14 +129,48 @@ const Dashboard: React.FC = () => {
 
   // Generate chart data for the weekly progress
   const getWeeklyChartData = (): ChartData => {
+    const now = new Date();
     const lastSevenDays = Array.from({ length: 7 }, (_, i) => {
-      const date = subDays(new Date(), 6 - i);
+      const date = subDays(now, 6 - i);
       return format(date, 'EEE');
     });
 
-    // Placeholder data - in a real app this would use actual data
-    const caloriesValues = [2240, 2180, 2340, 2420, 2100, 2550, 2340];
-    const weightValues = [186.4, 186.1, 185.8, 185.5, 185.7, 185.2, 185.0];
+    // Process actual data from Supabase
+    const sevenDaysAgo = subDays(now, 6);
+    
+    // Map for calories by day
+    const caloriesByDay = new Map();
+    const weightsByDay = new Map();
+
+    // Initialize with empty values for all 7 days
+    for (let i = 0; i < 7; i++) {
+      const date = subDays(now, 6 - i);
+      const dayKey = format(date, 'EEE');
+      caloriesByDay.set(dayKey, null);
+      weightsByDay.set(dayKey, null);
+    }
+
+    // Fill in actual calorie values where available
+    caloriesData?.forEach(entry => {
+      const entryDate = new Date(entry.date);
+      if (entryDate >= sevenDaysAgo && entryDate <= now) {
+        const dayKey = format(entryDate, 'EEE');
+        caloriesByDay.set(dayKey, entry.totalCalories);
+      }
+    });
+
+    // Fill in actual weight values where available
+    weightsData?.forEach(entry => {
+      const entryDate = new Date(entry.date);
+      if (entryDate >= sevenDaysAgo && entryDate <= now) {
+        const dayKey = format(entryDate, 'EEE');
+        weightsByDay.set(dayKey, entry.weight);
+      }
+    });
+
+    // Get the values in the correct order
+    const caloriesValues = lastSevenDays.map(day => caloriesByDay.get(day) || 0);
+    const weightValues = lastSevenDays.map(day => weightsByDay.get(day) || 0);
 
     return {
       labels: lastSevenDays,

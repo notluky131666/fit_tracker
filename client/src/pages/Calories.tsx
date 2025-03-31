@@ -26,11 +26,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import CaloriesForm from '@/components/forms/CaloriesForm';
 import WeeklyProgressChart from '@/components/charts/WeeklyProgressChart';
 import { CalorieEntry, ChartData } from '@/types';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const Calories: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -41,18 +41,23 @@ const Calories: React.FC = () => {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { 
+    getCalorieEntries, 
+    createCalorieEntry, 
+    updateCalorieEntry, 
+    deleteCalorieEntry 
+  } = useSupabaseData();
 
   // Fetch calorie entries
   const { data: calorieEntries, isLoading } = useQuery<CalorieEntry[]>({
-    queryKey: ['/api/calories'],
+    queryKey: ['calories'],
+    queryFn: getCalorieEntries
   });
 
   // Create a new calorie entry
   const createCalorieMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/calories', data),
+    mutationFn: (data: Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>) => createCalorieEntry(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/calories'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
       toast({ title: 'Success', description: 'Calorie entry added successfully' });
       setIsFormOpen(false);
     },
@@ -67,11 +72,9 @@ const Calories: React.FC = () => {
 
   // Update an existing calorie entry
   const updateCalorieMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number, data: any }) => 
-      apiRequest('PUT', `/api/calories/${id}`, data),
+    mutationFn: ({ id, data }: { id: number, data: Partial<Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>> }) => 
+      updateCalorieEntry(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/calories'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
       toast({ title: 'Success', description: 'Calorie entry updated successfully' });
       setIsFormOpen(false);
       setEditingEntry(null);
@@ -87,10 +90,8 @@ const Calories: React.FC = () => {
 
   // Delete a calorie entry
   const deleteCalorieMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/calories/${id}`),
+    mutationFn: (id: number) => deleteCalorieEntry(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/calories'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
       toast({ title: 'Success', description: 'Calorie entry deleted successfully' });
       setIsDeleteDialogOpen(false);
       setEntryToDelete(null);

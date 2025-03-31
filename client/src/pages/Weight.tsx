@@ -27,11 +27,11 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import WeightForm from '@/components/forms/WeightForm';
 import LineChart from '@/components/charts/LineChart';
 import { WeightEntry, ChartData } from '@/types';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const Weight: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -42,18 +42,23 @@ const Weight: React.FC = () => {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { 
+    getWeightEntries, 
+    createWeightEntry, 
+    updateWeightEntry, 
+    deleteWeightEntry 
+  } = useSupabaseData();
 
   // Fetch weight entries
   const { data: weightEntries, isLoading } = useQuery<WeightEntry[]>({
-    queryKey: ['/api/weights'],
+    queryKey: ['weights'],
+    queryFn: getWeightEntries
   });
 
   // Create a new weight entry
   const createWeightMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/weights', data),
+    mutationFn: (data: Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>) => createWeightEntry(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/weights'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
       toast({ title: 'Success', description: 'Weight entry added successfully' });
       setIsFormOpen(false);
     },
@@ -68,11 +73,9 @@ const Weight: React.FC = () => {
 
   // Update an existing weight entry
   const updateWeightMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number, data: any }) => 
-      apiRequest('PUT', `/api/weights/${id}`, data),
+    mutationFn: ({ id, data }: { id: number, data: Partial<Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>> }) => 
+      updateWeightEntry(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/weights'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
       toast({ title: 'Success', description: 'Weight entry updated successfully' });
       setIsFormOpen(false);
       setEditingEntry(null);
@@ -88,10 +91,8 @@ const Weight: React.FC = () => {
 
   // Delete a weight entry
   const deleteWeightMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/weights/${id}`),
+    mutationFn: (id: number) => deleteWeightEntry(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/weights'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
       toast({ title: 'Success', description: 'Weight entry deleted successfully' });
       setIsDeleteDialogOpen(false);
       setEntryToDelete(null);
@@ -206,7 +207,8 @@ const Weight: React.FC = () => {
           data: goalLine,
           borderColor: 'hsl(142, 72%, 29%)',
           backgroundColor: 'transparent',
-          borderDash: [5, 5],
+          // borderDash is not in the type, but it should work with Chart.js
+          // borderDash: [5, 5],
           fill: false,
           tension: 0
         }
@@ -274,7 +276,7 @@ const Weight: React.FC = () => {
                       </TableCell>
                       <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                         {change ? (
-                          <Badge variant={change.isGain ? "destructive" : "success"} className="font-normal">
+                          <Badge variant={change.isGain ? "destructive" : "outline"} className={`font-normal ${!change.isGain ? "text-green-600" : ""}`}>
                             {change.isGain ? '+' : '-'}{change.value}
                           </Badge>
                         ) : (

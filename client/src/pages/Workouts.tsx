@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -27,12 +27,12 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import WorkoutForm from '@/components/forms/WorkoutForm';
 import BarChart from '@/components/charts/BarChart';
 import DoughnutChart from '@/components/charts/DoughnutChart';
 import { WorkoutEntry, ChartData } from '@/types';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const Workouts: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -43,18 +43,30 @@ const Workouts: React.FC = () => {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { 
+    getWorkoutEntries, 
+    createWorkoutEntry, 
+    updateWorkoutEntry, 
+    deleteWorkoutEntry 
+  } = useSupabaseData();
 
   // Fetch workout entries
   const { data: workoutEntries, isLoading } = useQuery<WorkoutEntry[]>({
-    queryKey: ['/api/workouts'],
+    queryKey: ['workouts'],
+    queryFn: getWorkoutEntries
   });
+  
+  // Refresh data when component mounts
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['workouts'] });
+  }, [queryClient]);
 
   // Create a new workout entry
   const createWorkoutMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/workouts', data),
+    mutationFn: (data: Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>) => createWorkoutEntry(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/workouts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
       toast({ title: 'Success', description: 'Workout entry added successfully' });
       setIsFormOpen(false);
     },
@@ -69,11 +81,11 @@ const Workouts: React.FC = () => {
 
   // Update an existing workout entry
   const updateWorkoutMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number, data: any }) => 
-      apiRequest('PUT', `/api/workouts/${id}`, data),
+    mutationFn: ({ id, data }: { id: number, data: Partial<Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>> }) => 
+      updateWorkoutEntry(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/workouts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
       toast({ title: 'Success', description: 'Workout entry updated successfully' });
       setIsFormOpen(false);
       setEditingEntry(null);
@@ -89,10 +101,10 @@ const Workouts: React.FC = () => {
 
   // Delete a workout entry
   const deleteWorkoutMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/workouts/${id}`),
+    mutationFn: (id: number) => deleteWorkoutEntry(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/workouts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activity/recent'] });
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
       toast({ title: 'Success', description: 'Workout entry deleted successfully' });
       setIsDeleteDialogOpen(false);
       setEntryToDelete(null);
@@ -192,6 +204,7 @@ const Workouts: React.FC = () => {
       return {
         labels: ['No Data'],
         datasets: [{
+          label: 'Workout Types',
           data: [1],
           backgroundColor: ['#e2e8f0'],
         }]
@@ -224,6 +237,7 @@ const Workouts: React.FC = () => {
     return {
       labels,
       datasets: [{
+        label: 'Workout Types',
         data,
         backgroundColor: colors.slice(0, labels.length),
       }]

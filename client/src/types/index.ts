@@ -55,10 +55,10 @@ export type TimeFrame = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export interface ChartData {
   labels: string[];
   datasets: {
-    label: string;
+    label?: string;
     data: number[];
     borderColor?: string;
-    backgroundColor?: string;
+    backgroundColor?: string | string[];
     fill?: boolean;
     tension?: number;
     yAxisID?: string;

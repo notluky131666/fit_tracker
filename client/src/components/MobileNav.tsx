@@ -102,7 +102,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
   // Top mobile header and slide-out menu
   const renderTopNav = () => (
     <div className="md:hidden flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-      <h1 className="text-xl font-bold text-primary">FitTrack</h1>
+      <h1 className="text-xl font-bold text-primary">Lukie's Fit Track</h1>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="text-gray-500">
@@ -116,7 +116,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ user, onSignOut }) => {
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
           <div className="p-6 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-primary">FitTrack</h1>
+            <h1 className="text-2xl font-bold text-primary">Lukie's Fit Track</h1>
           </div>
           
           <nav className="flex-1 px-4 pb-4">

@@ -50,13 +50,29 @@ export function useSupabase() {
 
       if (error) throw error;
 
-      // After Supabase signup, also register with our backend
+      // After Supabase signup, create user profile in Supabase
       if (data.user) {
         try {
+          // Create user profile in Supabase
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert([
+              { 
+                id: data.user.id, 
+                username: email.split('@')[0], // Simple username generation
+                email,
+                full_name: fullName,
+                created_at: new Date().toISOString()
+              }
+            ]);
+          
+          if (profileError) throw profileError;
+          
+          // Also register with our backend
           const response = await apiRequest('POST', '/api/auth/register', {
-            username: email.split('@')[0], // Simple username generation
+            username: email.split('@')[0],
             email,
-            password, // In a real app, you'd use a secure method
+            password,
             fullName
           });
           
@@ -65,7 +81,7 @@ export function useSupabase() {
           
           toast({
             title: "Account created",
-            description: "Welcome to FitTrack! You can now log in.",
+            description: "Welcome to Lukie's Fit Track! You can now log in.",
           });
         } catch (backendError: any) {
           // If our backend registration failed but Supabase worked, signout from Supabase
@@ -108,7 +124,7 @@ export function useSupabase() {
           
           toast({
             title: "Welcome back!",
-            description: "You have successfully logged in.",
+            description: "You have successfully logged in to Lukie's Fit Track.",
           });
         } catch (backendError: any) {
           // If our backend login failed but Supabase worked, signout from Supabase
