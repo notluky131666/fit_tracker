@@ -80,7 +80,7 @@ const WeightForm: React.FC<WeightFormProps> = ({
               name="weight"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Weight (lbs)</FormLabel>
+                  <FormLabel>Weight (kg)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.1" min="0" {...field} />
                   </FormControl>

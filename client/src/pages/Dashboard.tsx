@@ -91,8 +91,8 @@ const Dashboard: React.FC = () => {
       },
       {
         title: 'Current Weight',
-        value: currentWeight,
-        unit: 'lbs',
+        value: currentWeight > 0 ? currentWeight.toFixed(1) : 0,
+        unit: 'kg',
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-xl">
             <path d="M6 18h12" />
@@ -102,8 +102,8 @@ const Dashboard: React.FC = () => {
           </svg>
         ),
         progress: weightProgress,
-        goal: `${weightGoal} lbs`,
-        changeValue: currentWeight > 0 ? `-${(startWeight - currentWeight).toFixed(1)} lbs total` : '',
+        goal: `${weightGoal} kg`,
+        changeValue: currentWeight > 0 ? `-${(startWeight - currentWeight).toFixed(1)} kg total` : '',
         color: 'bg-amber-100 text-amber-500'
       },
       {
@@ -184,7 +184,7 @@ const Dashboard: React.FC = () => {
           tension: 0.3
         },
         {
-          label: 'Weight (lbs)',
+          label: 'Weight (kg)',
           data: weightValues,
           borderColor: 'hsl(40, 96%, 53%)',
           backgroundColor: 'hsla(40, 96%, 53%, 0.1)',

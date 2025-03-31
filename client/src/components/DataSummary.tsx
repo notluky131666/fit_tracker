@@ -56,11 +56,11 @@ const DataSummary: React.FC<DataSummaryProps> = ({
       sections.push({
         title: 'Weight',
         items: [
-          { label: 'Starting Weight', value: `${weightSummary.start} lbs` },
-          { label: 'Current Weight', value: `${weightSummary.current} lbs` },
+          { label: 'Starting Weight', value: `${weightSummary.start} kg` },
+          { label: 'Current Weight', value: `${weightSummary.current} kg` },
           { 
             label: 'Total Change', 
-            value: `${Number(weightSummary.change) <= 0 ? '' : '+'}${weightSummary.change} lbs`,
+            value: `${Number(weightSummary.change) <= 0 ? '' : '+'}${weightSummary.change} kg`,
             color: Number(weightSummary.change) <= 0 ? 'text-green-600' : 'text-red-500'
           }
         ]

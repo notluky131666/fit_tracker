@@ -161,7 +161,7 @@ const Statistics: React.FC = () => {
       return {
         labels: ['No Data'],
         datasets: [{
-          label: 'Weight (lbs)',
+          label: 'Weight (kg)',
           data: [0],
           borderColor: 'hsl(40, 96%, 53%)',
           backgroundColor: 'hsla(40, 96%, 53%, 0.1)',
@@ -183,7 +183,7 @@ const Statistics: React.FC = () => {
     return {
       labels,
       datasets: [{
-        label: 'Weight (lbs)',
+        label: 'Weight (kg)',
         data: weightValues,
         borderColor: 'hsl(40, 96%, 53%)',
         backgroundColor: 'hsla(40, 96%, 53%, 0.1)',
@@ -483,7 +483,7 @@ const Statistics: React.FC = () => {
                         chartData={getCorrelationChartData()} 
                         type="scatter" 
                         xLabel="Calories" 
-                        yLabel="Weight (lbs)"
+                        yLabel="Weight (kg)"
                       />
                     ) : (
                       <p className="text-gray-500">Not enough data for correlation analysis</p>
