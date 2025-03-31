@@ -25,7 +25,7 @@ function Router() {
   // Handle GitHub Pages base path
   useEffect(() => {
     // If we're at the root of the base path, redirect to home
-    if (location === base) {
+    if (location === base || location === '/fit_tracker/') {
       window.history.replaceState({}, "", prependBase("/"));
     }
   }, [location, base]);

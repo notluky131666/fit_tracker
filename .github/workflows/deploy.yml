@@ -23,7 +23,7 @@ jobs:
       - name: Update Vite Config
         run: |
           # Add base config for GitHub Pages
-          sed -i 's/export default defineConfig({/export default defineConfig({\n  base: "\/lukies-fit-track\/",/' vite.config.ts
+          sed -i 's/export default defineConfig({/export default defineConfig({\n  base: "\/fit_tracker\/",/' vite.config.ts
 
       - name: Build
         run: npm run build
