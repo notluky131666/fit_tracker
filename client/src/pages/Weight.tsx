@@ -154,9 +154,45 @@ const Weight: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     if (entryToDelete !== null) {
-      deleteWeightMutation.mutate(entryToDelete);
+      deleteWeightMutation.mutate(entryToDelete, {
+        onSuccess: () => {
+          setIsDeleteDialogOpen(false);
+          setEntryToDelete(null);
+          queryClient.invalidateQueries(['weights']);
+          toast({ title: 'Success', description: 'Weight entry deleted successfully' });
+        },
+        onError: (error: any) => {
+          toast({ 
+            title: 'Error', 
+            description: `Failed to delete entry: ${error.message}`, 
+            variant: 'destructive' 
+          });
+        }
+      });
     }
   };
+
+  // Add delete confirmation dialog
+  const confirmDialog = (
+    <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Weight Entry</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this weight entry? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteConfirm}>
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   // Format weight entry date for form
   const formatDateForForm = (date: Date) => {
