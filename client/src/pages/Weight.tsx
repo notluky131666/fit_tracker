@@ -107,16 +107,38 @@ const Weight: React.FC = () => {
   });
 
   const handleFormSubmit = (values: any) => {
-    const formData = {
-      ...values,
-      date: new Date(values.date),
-      weight: Number(values.weight),
-    };
+    try {
+      console.log('Form values received:', values);
+      
+      // Make sure date is valid
+      const dateValue = values.date ? new Date(values.date) : new Date();
+      if (isNaN(dateValue.getTime())) {
+        throw new Error('Invalid date format');
+      }
+      
+      const formData = {
+        ...values,
+        date: dateValue,
+        weight: Number(values.weight) || 0,
+        notes: values.notes || ''
+      };
+      
+      console.log('Formatted form data:', formData);
 
-    if (editingEntry) {
-      updateWeightMutation.mutate({ id: editingEntry.id, data: formData });
-    } else {
-      createWeightMutation.mutate(formData);
+      if (editingEntry) {
+        console.log('Updating entry with ID:', editingEntry.id);
+        updateWeightMutation.mutate({ id: editingEntry.id, data: formData });
+      } else {
+        console.log('Creating new entry');
+        createWeightMutation.mutate(formData);
+      }
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      toast({ 
+        title: 'Form Error', 
+        description: `Could not process form: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        variant: 'destructive' 
+      });
     }
   };
 

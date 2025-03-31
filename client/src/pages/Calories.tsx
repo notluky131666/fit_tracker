@@ -106,19 +106,41 @@ const Calories: React.FC = () => {
   });
 
   const handleFormSubmit = (values: any) => {
-    const formData = {
-      ...values,
-      date: new Date(values.date),
-      totalCalories: Number(values.totalCalories),
-      protein: values.protein ? Number(values.protein) : undefined,
-      carbs: values.carbs ? Number(values.carbs) : undefined,
-      fat: values.fat ? Number(values.fat) : undefined,
-    };
+    try {
+      console.log('Form values received:', values);
+      
+      // Make sure date is valid
+      const dateValue = values.date ? new Date(values.date) : new Date();
+      if (isNaN(dateValue.getTime())) {
+        throw new Error('Invalid date format');
+      }
+      
+      const formData = {
+        ...values,
+        date: dateValue,
+        totalCalories: Number(values.totalCalories) || 0,
+        protein: values.protein !== undefined && values.protein !== '' ? Number(values.protein) : undefined,
+        carbs: values.carbs !== undefined && values.carbs !== '' ? Number(values.carbs) : undefined,
+        fat: values.fat !== undefined && values.fat !== '' ? Number(values.fat) : undefined,
+        notes: values.notes || ''
+      };
+      
+      console.log('Formatted form data:', formData);
 
-    if (editingEntry) {
-      updateCalorieMutation.mutate({ id: editingEntry.id, data: formData });
-    } else {
-      createCalorieMutation.mutate(formData);
+      if (editingEntry) {
+        console.log('Updating entry with ID:', editingEntry.id);
+        updateCalorieMutation.mutate({ id: editingEntry.id, data: formData });
+      } else {
+        console.log('Creating new entry');
+        createCalorieMutation.mutate(formData);
+      }
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      toast({ 
+        title: 'Form Error', 
+        description: `Could not process form: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        variant: 'destructive' 
+      });
     }
   };
 

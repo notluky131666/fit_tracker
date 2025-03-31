@@ -22,18 +22,35 @@ export function useSupabaseData() {
   };
   
   const createCalorieEntry = async (data: Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>): Promise<CalorieEntry> => {
-    // Get current user from Supabase directly to ensure we have the most up-to-date session
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    
-    if (!currentUser?.id) {
-      console.error('User not authenticated when trying to create calorie entry');
-      throw new Error('User not authenticated');
+    try {
+      // Get current user from Supabase directly to ensure we have the most up-to-date session
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser?.id) {
+        console.error('User not authenticated when trying to create calorie entry');
+        throw new Error('User not authenticated');
+      }
+      
+      // Ensure all data is properly formatted
+      const formattedData = {
+        ...data,
+        date: data.date instanceof Date ? data.date : new Date(data.date),
+        totalCalories: Number(data.totalCalories),
+        protein: data.protein !== undefined ? Number(data.protein) : undefined,
+        carbs: data.carbs !== undefined ? Number(data.carbs) : undefined,
+        fat: data.fat !== undefined ? Number(data.fat) : undefined,
+      };
+      
+      console.log('Creating calorie entry with data:', formattedData);
+      
+      const newEntry = await supabaseService.createCalorieEntry(currentUser.id, formattedData);
+      queryClient.invalidateQueries({ queryKey: ['calories'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+      return newEntry;
+    } catch (error) {
+      console.error('Error creating calorie entry:', error);
+      throw error;
     }
-    
-    const newEntry = await supabaseService.createCalorieEntry(currentUser.id, data);
-    queryClient.invalidateQueries({ queryKey: ['calories'] });
-    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
-    return newEntry;
   };
   
   const updateCalorieEntry = async (id: number, data: Partial<Omit<CalorieEntry, 'id' | 'userId' | 'createdAt'>>): Promise<CalorieEntry> => {
@@ -80,18 +97,33 @@ export function useSupabaseData() {
   };
   
   const createWeightEntry = async (data: Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>): Promise<WeightEntry> => {
-    // Get current user from Supabase directly to ensure we have the most up-to-date session
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    
-    if (!currentUser?.id) {
-      console.error('User not authenticated when trying to create weight entry');
-      throw new Error('User not authenticated');
+    try {
+      // Get current user from Supabase directly to ensure we have the most up-to-date session
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser?.id) {
+        console.error('User not authenticated when trying to create weight entry');
+        throw new Error('User not authenticated');
+      }
+      
+      // Ensure all data is properly formatted
+      const formattedData = {
+        ...data,
+        date: data.date instanceof Date ? data.date : new Date(data.date),
+        weight: Number(data.weight),
+        notes: data.notes || undefined
+      };
+      
+      console.log('Creating weight entry with data:', formattedData);
+      
+      const newEntry = await supabaseService.createWeightEntry(currentUser.id, formattedData);
+      queryClient.invalidateQueries({ queryKey: ['weights'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+      return newEntry;
+    } catch (error) {
+      console.error('Error creating weight entry:', error);
+      throw error;
     }
-    
-    const newEntry = await supabaseService.createWeightEntry(currentUser.id, data);
-    queryClient.invalidateQueries({ queryKey: ['weights'] });
-    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
-    return newEntry;
   };
   
   const updateWeightEntry = async (id: number, data: Partial<Omit<WeightEntry, 'id' | 'userId' | 'createdAt'>>): Promise<WeightEntry> => {
@@ -138,18 +170,35 @@ export function useSupabaseData() {
   };
   
   const createWorkoutEntry = async (data: Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>): Promise<WorkoutEntry> => {
-    // Get current user from Supabase directly to ensure we have the most up-to-date session
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    
-    if (!currentUser?.id) {
-      console.error('User not authenticated when trying to create workout');
-      throw new Error('User not authenticated');
+    try {
+      // Get current user from Supabase directly to ensure we have the most up-to-date session
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser?.id) {
+        console.error('User not authenticated when trying to create workout');
+        throw new Error('User not authenticated');
+      }
+      
+      // Ensure all data is properly formatted
+      const formattedData = {
+        ...data,
+        date: data.date instanceof Date ? data.date : new Date(data.date),
+        duration: Number(data.duration),
+        type: data.type || 'other',
+        intensity: data.intensity || 'medium',
+        notes: data.notes || undefined
+      };
+      
+      console.log('Creating workout entry with data:', formattedData);
+      
+      const newEntry = await supabaseService.createWorkoutEntry(currentUser.id, formattedData);
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
+      return newEntry;
+    } catch (error) {
+      console.error('Error creating workout entry:', error);
+      throw error;
     }
-    
-    const newEntry = await supabaseService.createWorkoutEntry(currentUser.id, data);
-    queryClient.invalidateQueries({ queryKey: ['workouts'] });
-    queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
-    return newEntry;
   };
   
   const updateWorkoutEntry = async (id: number, data: Partial<Omit<WorkoutEntry, 'id' | 'userId' | 'createdAt'>>): Promise<WorkoutEntry> => {
