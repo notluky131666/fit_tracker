@@ -41,4 +41,4 @@ jobs:
         with:
           folder: dist/public
           branch: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
