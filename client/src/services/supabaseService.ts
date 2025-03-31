@@ -348,7 +348,7 @@ export const getRecentActivity = async (userId: string, limit: number = 10): Pro
     type: 'weight' as const,
     date: new Date(entry.date),
     metric: 'Weight',
-    value: `${entry.weight} lbs`,
+    value: `${entry.weight} kg`,
     createdAt: new Date(entry.created_at)
   }));
   
